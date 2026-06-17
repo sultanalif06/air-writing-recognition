@@ -11,7 +11,11 @@ mp_draw = mp.solutions.drawing_utils
 
 points = []
 label = input("Enter the letter you are writing (A-Z): ").upper()
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+if not cap.isOpened():
+    print("ERROR: Could not open camera. Try changing index 0 to 1.")
+    exit()
+print("Camera opened successfully.")
 start_time = time.time()
 
 
@@ -25,8 +29,15 @@ print("- 'q': Quit")
 print("- 'c': Clear current points without saving")
 print("\nStarting in PAUSED mode. Press SPACE when ready to record.")
 
+window_name = "Air Writing - Letter: " + label
+cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+cv2.resizeWindow(window_name, 640, 480)
+
 while True:
     ret, frame = cap.read()
+    if not ret or frame is None:
+        print("Camera read failed.")
+        break
     frame = cv2.flip(frame, 1)
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     result = hands.process(rgb)
@@ -70,7 +81,7 @@ while True:
                         pt2 = points[i+1]
                         cv2.line(frame, pt1, pt2, (255, 0, 0), 2)
     
-    cv2.imshow("Air Writing - Letter: " + label, frame)
+    cv2.imshow(window_name, frame)
     key = cv2.waitKey(1) & 0xFF
     
     if key == ord(' '):
